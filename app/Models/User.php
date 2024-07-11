@@ -29,6 +29,7 @@ class User extends Authenticatable
         'usertype',
         'email',
         'password',
+        'thumbnail',
     ];
 
     /**
@@ -63,5 +64,17 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    // public function posts () {
+    //     return $this->hasMany(Post::class);
+    // }
+
+    public function posts() {
+        return $this->belongsToMany(Post::class, 'post_user')->withPivot(['order'])->withTimestamps();
+    }
+
+    public function comments() {
+        return $this->morphMany(Comment::class, 'commentable');
     }
 }
