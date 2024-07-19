@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\UserResource\Pages;
 use App\Filament\Resources\UserResource\RelationManagers;
 use App\Models\User;
+use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\TextInput;
@@ -26,6 +27,9 @@ class UserResource extends Resource
     protected static ?string $model = User::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-users';
+    protected static ?string $navigationGroup = 'Users';
+    protected static ?string $modelLabel = 'All Users';
+    protected static ?int $navigationSort = 10;
 
     public static function form(Form $form): Form
     {
@@ -37,7 +41,7 @@ class UserResource extends Resource
                 TextInput::make('password')->required()->password()->confirmed()->autocomplete(false)
                 ->minLength(7)->maxLength(20),
                 TextInput::make('password_confirmation')->password(),
-                Select::make('usertype')->required()->options([
+                Select::make('role')->required()->options([
                     'user'=>'User',
                     'admin'=>'Admin'
                     ])->native(false),
@@ -53,8 +57,17 @@ class UserResource extends Resource
                 ImageColumn::make('thumbnail')->toggleable(),
                 TextColumn::make('name')->sortable()->searchable()->toggleable(),
                 TextColumn::make('email')->sortable()->searchable()->toggleable(),
-                TextColumn::make('usertype')->sortable()->searchable()->toggleable(),
-                TextColumn::make('created_at')->sortable()->searchable()->toggleable(),
+                TextColumn::make('role')->sortable()->searchable()->toggleable()
+                ->badge()->color(function($state) : string {
+                    return match ($state) {
+                        'admin' => 'success',
+                        'user' => 'warning',
+                    };
+                })
+                ->formatStateUsing(fn (string $state) => ucfirst($state)),
+                TextColumn::make('created_at')->sortable()->searchable()
+                ->toggleable()->label('Joined')
+                ->formatStateUsing(fn (string $state) => Carbon::parse($state)->diffForHumans()),
             ])
             ->filters([
                 //

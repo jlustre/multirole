@@ -31,7 +31,7 @@ class AuthorsRelationManager extends RelationManager
             // TextInput::make('password')->required()->password()->confirmed()->autocomplete(false)
             // ->minLength(7)->maxLength(20),
             // TextInput::make('password_confirmation')->password(),
-            // Select::make('usertype')->required()->options([
+            // Select::make('role')->required()->options([
             //     'user'=>'User',
             //     'admin'=>'Admin'
             //     ])->native(false),
@@ -49,7 +49,7 @@ class AuthorsRelationManager extends RelationManager
                 TextColumn::make('name')->sortable()->searchable()->toggleable(),
                 TextColumn::make('email')->sortable()->searchable()->toggleable(),
                 TextColumn::make('order')->sortable()->searchable()->toggleable(),
-                // TextColumn::make('usertype')->sortable()->searchable()->toggleable(isToggledHiddenByDefault: true),
+                // TextColumn::make('role')->sortable()->searchable()->toggleable(isToggledHiddenByDefault: true),
                 // TextColumn::make('created_at')->sortable()->searchable()->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([

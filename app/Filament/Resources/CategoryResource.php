@@ -15,20 +15,31 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Str;
 
 class CategoryResource extends Resource
 {
     protected static ?string $model = Category::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-folder';
-    protected static ?string $modelLabel = 'Post Categories';
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $modelLabel = 'Categories';
+    // protected static ?string $navigationParentItem = 'Posts';
+    protected static ?string $navigationGroup = 'Blogs';
+    protected static ?int $navigationSort = 20;
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                TextInput::make('name')->required()->unique(),
-                TextInput::make('slug')->required()->unique(),
+                TextInput::make('name')->required()->unique(ignoreRecord: true)
+                    ->live(onBlur: true)
+                    ->afterStateUpdated(function (string $operation, string $state, Forms\Set $set) {
+                        if ($operation === 'edit') {
+                            return;
+                        }
+                        $set('slug', Str::slug($state));
+                }),
+                TextInput::make('slug')->required()->unique(ignoreRecord: true),
             ]);
     }
 
@@ -45,6 +56,7 @@ class CategoryResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\ViewAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

@@ -5,8 +5,10 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\PostResource\Pages;
 use App\Filament\Resources\PostResource\RelationManagers;
 use App\Filament\Resources\PostResource\RelationManagers\AuthorsRelationManager;
+use App\Filament\Resources\PostResource\RelationManagers\CommentsRelationManager;
 use App\Models\Category;
 use App\Models\Post;
+use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\ColorPicker;
@@ -34,12 +36,17 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Filters\Filter;
+use Illuminate\Support\Str;
 
 class PostResource extends Resource
 {
     protected static ?string $model = Post::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-pencil-square';
+    protected static ?string $navigationGroup = 'Blogs';
+    // protected static ?string $navigationParentItem = 'Posts';
+    protected static ?int $navigationSort = 10;
+    protected static ?string $modelLabel = 'All Posts';
 
     public static function form(Form $form): Form
     {
@@ -50,7 +57,14 @@ class PostResource extends Resource
                         ->icon('heroicon-m-information-circle')
                         ->schema([
                             Group::make()->schema([
-                                TextInput::make('title')->required()->columnSpan(2),
+                                TextInput::make('title')->required()->columnSpan(2)->unique(ignoreRecord: true)
+                                ->live(onBlur: true)
+                                ->afterStateUpdated(function (string $operation, string $state, Forms\Set $set) {
+                                    if ($operation === 'edit') {
+                                        return;
+                                    }
+                                    $set('slug', Str::slug($state));
+                                }),
                                 TextInput::make('slug')->required()->unique(ignoreRecord: true)->columnSpan(2),
                                 ColorPicker::make('color')->required()->columnSpan(2), 
                                 Select::make('category_id')
@@ -79,7 +93,7 @@ class PostResource extends Resource
                             ->schema([
                                 TagsInput::make('tags')->required(),
                                 DatePicker::make('created_at')->visibleOn('edit')->native(false),
-                                Checkbox::make('published')->required(), 
+                                // Checkbox::make('published')->required(), 
                             ])->columnSpan(2),
                         ]) ->columns(3)
                     ]),
@@ -98,8 +112,12 @@ class PostResource extends Resource
                 ColorColumn::make('color')->sortable()->searchable()->toggleable(),
                 TextColumn::make('category.name')->sortable()->searchable()->toggleable(),
                 TextColumn::make('authors.name')->sortable()->searchable()->toggleable(),
-                CheckboxColumn::make('published')->sortable()->searchable()->toggleable(),
-                TextColumn::make('created_at')->sortable()->searchable()->label('Published On')->date()->toggleable(),
+                // CheckboxColumn::make('published')->sortable()->searchable()->toggleable(),
+                TextColumn::make('created_at')->sortable()->searchable()->label('Published On')
+                // ->formatStateUsing(fn (string $state) => Carbon::parse($state)->format('M d, Y'))
+                ->formatStateUsing(fn (string $state) => Carbon::parse($state)->diffForHumans())
+                // ->date()
+                ->toggleable(),
             ])
             ->filters([
                 // Filter::make('Published Posts')->query(
@@ -107,7 +125,7 @@ class PostResource extends Resource
                 //         return $query->where('published', true);
                 //     }
                 // ),
-                TernaryFilter::make('published'),
+                // TernaryFilter::make('published'),
                 SelectFilter::make('category_id')
                 ->label('Category')
                 // ->options(Category::all()->pluck('name','id'))
@@ -136,7 +154,8 @@ class PostResource extends Resource
     public static function getRelations(): array
     {
         return [
-            AuthorsRelationManager::class
+            AuthorsRelationManager::class,
+            CommentsRelationManager::class,
         ];
     }
 

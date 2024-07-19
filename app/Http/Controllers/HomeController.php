@@ -2,24 +2,31 @@
 
 namespace App\Http\Controllers;
 
-
+use App\Models\Post;
+// use Carbon\Carbon;
 use Illuminate\Http\Request;
-use App\Models\User;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class HomeController extends Controller
 {
-    public function index() {
-        if(Auth::user()->usertype ==='admin') {
-            return view('admin.home');
-        } else {
-            return view('dashboard');
-        }
-    }
-    public function page() {
-        if(Auth()->check()) {
-            return view('adminpage');
-        }
-        return to_route('login');
+    /**
+     * Handle the incoming request.
+     */
+    public function __invoke(Request $request)
+    {
+        $featuredPosts = Post::published()->featured()->latest('published_at')->take(4)->get();
+        // $featuredPosts = Cache::remember('featuredPosts', now()->addDay(), function () {
+        //     return Post::published()->featured()->with('categories')->latest('published_at')->take(4)->get();
+        // });
+
+        $latestPosts = Cache::remember('latestPosts', now()->addDay(), function () {
+            return Post::published()->latest('published_at')->take(8)->get();
+            // return Post::published()->with('categories')->latest('published_at')->take(9)->get();
+        });
+
+        return view('home', [
+            'featuredPosts' => $featuredPosts,
+            'latestPosts' => $latestPosts
+        ]);
     }
 }

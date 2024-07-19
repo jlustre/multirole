@@ -57,7 +57,7 @@ class PostsRelationManager extends RelationManager
                     ->label('Owner')
                     ->options(User::all()->pluck('name', 'id'))
                     ->searchable(),  
-                    Checkbox::make('published')->required(), 
+                    // Checkbox::make('published')->required(), 
                 ])->columnSpan(1),
             ]) 
         ])->columns([
@@ -81,7 +81,7 @@ class PostsRelationManager extends RelationManager
                 ColorColumn::make('color')->sortable()->searchable()->toggleable(),
                 TextColumn::make('category.name')->sortable()->searchable()->toggleable(),
                 TextColumn::make('user.name')->sortable()->searchable()->toggleable(),
-                CheckboxColumn::make('published')->sortable()->searchable()->toggleable(),
+                // CheckboxColumn::make('published')->sortable()->searchable()->toggleable(),
                 TextColumn::make('created_at')->sortable()->searchable()->label('Published On')->date()->toggleable(),
             ])
             ->filters([
